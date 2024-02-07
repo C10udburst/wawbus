@@ -4,9 +4,8 @@ from .main import WawBus
 def __main__():
     import argparse
 
-    parser = argparse.ArgumentParser(description="WawBus")
+    parser = argparse.ArgumentParser(description="Collect bus positions from api.um.warszawa.pl")
     parser.add_argument("--apikey", help="api.um.warszawa.pl API key")
-    parser.add_argument("--dataset", help="frozen dataset name")
     parser.add_argument("--count", help="number of collections", type=int, default=25)
     parser.add_argument("--retry", help="number of retries", type=int, default=3)
     parser.add_argument("--sleep", help="sleep between collections", type=int, default=10)

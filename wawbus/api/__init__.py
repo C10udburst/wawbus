@@ -3,7 +3,7 @@ from typing import Optional
 
 import requests
 
-from .exceptions import ZtmApiException
+from .exceptions import ZtmApiException, ZtmHttpException
 
 
 class ZtmApi:
@@ -26,10 +26,13 @@ class ZtmApi:
         if rid:
             qparams['resource_id'] = rid
 
-        r = requests.get(
-            f'https://api.um.warszawa.pl/api/action/{endpoint}',
-            params=qparams
-        )
+        try:
+            r = requests.get(
+                f'https://api.um.warszawa.pl/api/action/{endpoint}',
+                params=qparams
+            )
+        except requests.exceptions.RequestException as e:
+            raise ZtmHttpException(e)
 
         if r.status_code != requests.codes.ok:
             raise ZtmApiException(f'API error: {r.status_code}')

@@ -39,7 +39,7 @@ class WawBus:
                 response = self.api.get_bus_positions()
             except ZtmApiException as e:
                 print(f"Error: {e}, skipping collection {i+1}/{count}")
-                sleep(sleep_between * 2)
+                sleep(sleep_between)
                 continue
             df = pd.DataFrame(response)
             dfs.append(df)
