@@ -9,9 +9,12 @@ def __main__():
     parser = argparse.ArgumentParser(description="Collect bus positions from api.um.warszawa.pl")
     parser.add_argument("--apikey", help="api.um.warszawa.pl API key. If set to 'env', will use WAWBUS_APIKEY."
                                          "environment variable")
+    parser.add_argument("--type", help="What to collect: positions or timetable",
+                        default="positions", choices=["positions", "timetable"])
     parser.add_argument("--count", help="number of collections", type=int, default=25)
     parser.add_argument("--retry", help="number of retries", type=int, default=3)
     parser.add_argument("--sleep", help="sleep between collections", type=int, default=10)
+    parser.add_argument("--workers", help="number of workers when collecting timetables", type=int, default=5)
     parser.add_argument("--output", help="output file")
 
     args = parser.parse_args()
@@ -25,8 +28,16 @@ def __main__():
         args.apikey = environ.get("WAWBUS_APIKEY")
 
     wb = WawBus(apikey=args.apikey, retry_count=args.retry)
-    wb.collect_positions(args.count, args.sleep)
-    df = wb.dataset
+    wb.tt_worker_count = args.workers
+
+    if args.type == "positions":
+        wb.collect_positions(args.count, args.sleep)
+        df = wb.dataset
+    elif args.type == "timetable":
+        wb.collect_timetables()
+        df = wb.tt
+    else:
+        raise ValueError(f"Unsupported type: {args.type}")
 
     print(f"Collected {len(df)} records")
 

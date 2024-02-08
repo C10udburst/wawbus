@@ -6,6 +6,15 @@ import requests
 from .exceptions import ZtmApiException, ZtmHttpException
 
 
+def _normalize_kv(data: List[dict]) -> List[dict]:
+    """
+    Normalize key-value pairs
+    :param data: list in api.um.warszawa.pl format
+    :return: response a list of proper keys
+    """
+    return [{x['key']: x['value'] for x in d['values']} for d in data]
+
+
 class ZtmApi:
     api_key: str
     retry_count: int = 3
@@ -78,14 +87,21 @@ class ZtmApi:
             type='1'
         )
 
-    def get_routes(self) -> dict:
+    def get_routes(self) -> List[dict]:
         """
         Get bus routes
-        :return: response
+        :return: response a list of dicts with keys: odleglosc, ulica_id, nr_zespolu, typ, nr_przystanku, bus,
+        direction, stop
         """
-        return self._req(
-            'public_transport_routes'
-        )
+        for bus, data in self._req(
+                'public_transport_routes'
+        ).items():
+            for direction, stops in data.items():
+                for stop, kv in stops.items():
+                    kv['bus'] = bus
+                    kv['direction'] = direction
+                    kv['stop'] = stop
+                    yield kv
 
     def get_stop_locations(self) -> List[dict]:
         """
@@ -93,11 +109,23 @@ class ZtmApi:
         :return: response a list of dicts with keys: zespol, slupek, nazwa_zespolu, id_ulicy, szer_geo, dlug_geo,
         kierunek, obowiazuje_od
         """
-        resp = self._req(
+        return _normalize_kv(self._req(
             'dbstore_get',
             id='ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'
-        )
+        ))
 
-        resp = [{x['key']: x['value'] for x in d['values']} for d in resp]
-
-        return resp
+    def get_timetable(self, stop_id: str, line: str, stop_nr: str) -> List[dict]:
+        """
+        Get bus timetable
+        :param stop_id: bus stop id
+        :param line: bus line number
+        :param stop_nr: bus stop number
+        :return: response a list of dicts with keys: symbol_2, symbol_1, brygada, kierunek, trasa, czas
+        """
+        return _normalize_kv(self._req(
+            'dbtimetable_get',
+            id='e923fa0e-d96c-43f9-ae6e-60518c9f3238',
+            busstopId=stop_id,
+            busstopNr=stop_nr,
+            line=line
+        ))
