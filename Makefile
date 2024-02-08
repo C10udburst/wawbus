@@ -1,9 +1,9 @@
-.PHONY: help clean clean-build clean-pyc clean-test lint/flake8 lint/black lint test test-all docs
+.PHONY: help clean clean-build clean-pyc clean-test lint test test-all docs
 
 docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/wawbus.rst
 	rm -f docs/modules.rst
-	python -m sphinx-apidoc -o docs/ wawbus
+	sphinx-apidoc -o docs/ wawbus
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 
@@ -31,12 +31,8 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
 
-lint/flake8: ## check style with flake8
+lint: ## check style with flake8
 	flake8 wawbus tests
-lint/black: ## check style with black
-	black --check wawbus tests
-
-lint: lint/flake8 lint/black ## check style
 
 test: ## run tests quickly with the default Python
 	python -m pytest

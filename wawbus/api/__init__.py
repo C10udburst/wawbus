@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Optional
+from typing import Optional, List
 
 import requests
 
@@ -43,12 +43,10 @@ class ZtmApi:
             raise ZtmApiException(error)
 
         if result := response.get('result'):
-            if isinstance(result, list):
-                return result
-            elif isinstance(result, str):
+            if isinstance(result, str):
                 raise ZtmApiException(result)
             else:
-                raise ZtmApiException('Unknown result type')
+                return result
         else:
             raise ZtmApiException('No result in response')
 
@@ -69,10 +67,10 @@ class ZtmApi:
         else:
             raise err
 
-    def get_bus_positions(self):
+    def get_bus_positions(self) -> List[dict]:
         """
         Get bus positions
-        :return: response
+        :return: response a list of dicts with keys: Lat, Lon, Time, Lines, VehicleNumber, Brigade
         """
         return self._req(
             'busestrams_get',
@@ -80,7 +78,7 @@ class ZtmApi:
             type='1'
         )
 
-    def get_routes(self):
+    def get_routes(self) -> dict:
         """
         Get bus routes
         :return: response
@@ -88,3 +86,18 @@ class ZtmApi:
         return self._req(
             'public_transport_routes'
         )
+
+    def get_stop_locations(self) -> List[dict]:
+        """
+        Get bus stop locations
+        :return: response a list of dicts with keys: zespol, slupek, nazwa_zespolu, id_ulicy, szer_geo, dlug_geo,
+        kierunek, obowiazuje_od
+        """
+        resp = self._req(
+            'dbstore_get',
+            id='ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'
+        )
+
+        resp = [{x['key']: x['value'] for x in d['values']} for d in resp]
+
+        return resp

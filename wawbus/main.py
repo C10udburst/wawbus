@@ -66,7 +66,9 @@ class WawBus:
 
         df = pd.concat(dfs, ignore_index=True)
 
-        df['Time'] = pd.to_datetime(df['Time'])
+        # for some fucking reason some entries have the year 2022024, so we need to coerce them
+        df['Time'] = pd.to_datetime(df['Time'], errors='coerce')
+        df = df.dropna(subset=['Time'])
 
         self.dataset = df
 

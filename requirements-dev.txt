@@ -3,6 +3,5 @@ setuptools
 wheel
 pytest
 flake8
-black
 requests-mock
 sphinx
