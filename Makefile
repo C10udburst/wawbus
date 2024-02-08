@@ -3,7 +3,7 @@
 docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/wawbus.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ wawbus
+	python -m sphinx-apidoc -o docs/ wawbus
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 
@@ -39,4 +39,4 @@ lint/black: ## check style with black
 lint: lint/flake8 lint/black ## check style
 
 test: ## run tests quickly with the default Python
-	pytest
+	python -m pytest

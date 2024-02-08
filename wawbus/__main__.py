@@ -6,7 +6,8 @@ from .main import WawBus
 def __main__():
     import argparse
 
-    parser = argparse.ArgumentParser(description="Collect bus positions from api.um.warszawa.pl")
+    parser = argparse.ArgumentParser(
+        description="Collect bus positions from api.um.warszawa.pl")
     parser.add_argument("--apikey", help="api.um.warszawa.pl API key. If set to 'env', will use WAWBUS_APIKEY."
                                          "environment variable")
     parser.add_argument("--count", help="number of collections", type=int, default=25)

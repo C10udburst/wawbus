@@ -5,8 +5,8 @@ from typing import Optional
 
 import pandas as pd
 
-from wawbus.api import ZtmApi, ZtmApiException
-from wawbus.util.velocity_calc import speed
+from .api import ZtmApi, ZtmApiException
+from .util.velocity_calc import speed
 
 _DATASET_URL = "https://github.com/C10udburst/wawbus-data/raw/master/bus-data/{}.gzip"
 

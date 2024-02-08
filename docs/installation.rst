@@ -8,11 +8,12 @@ Installation
 Stable release
 --------------
 
-To install wawbus, run this command in your terminal:
+- Download whl file from `releases <https://github.com/C10udburst/wawbus/releases>`_
+- Install it using pip:
 
-.. code-block:: console
+.. code-block:: bash
 
-    $ pip install wawbus
+    pip install wawbus-*-py3-none-any.whl
 
 This is the preferred method to install wawbus, as it will always install the most recent stable release.
 

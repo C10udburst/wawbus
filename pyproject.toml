@@ -12,20 +12,9 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python :: 3 :: Only",
 ]
-dynamic = ["version", "dependencies"]
+dynamic = ["version", "dependencies", "optional-dependencies"]
 requires-python = ">=3.8"
 license = {"file" = "LICENSE"}
-
-[project.optional-dependencies]
-dev = [
-    "build",
-    "setuptools",
-    "wheel",
-    "pytest",
-    "flake8",
-    "black",
-    "sphinx",
-]
 
 [project.urls]
 Source = "https://github.com/C10udburst/wawbus/tree/master#readme"
@@ -34,12 +23,13 @@ Tracker = "https://github.com/C10udburst/wawbus/issues"
 Changelog = "https://github.com/C10udburst/wawbus/commits/master"
 
 [tool.setuptools]
-packages = ["wawbus"]
-package-dir = { "wawbus"="wawbus"}
+packages = ["wawbus", "wawbus.api", "wawbus.util"]
+package-dir = { "wawbus"="wawbus", "wawbus.api"="wawbus/api", "wawbus.util"="wawbus/util"}
 
 [tool.distutils.bdist_wheel]
 universal = true
 
 [tool.setuptools.dynamic]
 version = { "attr" = "wawbus.__version__"}
-dependencies = { "path" = "requirements.txt"}
+dependencies = { "file" = "requirements.txt"}
+optional-dependencies.dev = { "file" = "requirements-dev.txt"}
