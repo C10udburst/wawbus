@@ -1,8 +1,12 @@
 name: documentation
 
 on: 
-  #- push
-  - workflow_dispatch
+    push:
+      branches:
+        - master
+      paths:
+        - 'wawbus/__meta__.py'  # if version bump
+    workflow_dispatch:
 
 permissions:
   contents: read

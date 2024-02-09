@@ -18,7 +18,7 @@ license = {"file" = "LICENSE"}
 
 [project.urls]
 Source = "https://github.com/C10udburst/wawbus/tree/master#readme"
-#Documentation = "https://C10udburst.github.io/wawbus/"
+Documentation = "https://C10udburst.github.io/wawbus/"
 Tracker = "https://github.com/C10udburst/wawbus/issues"
 Changelog = "https://github.com/C10udburst/wawbus/commits/master"
 
@@ -30,6 +30,6 @@ package-dir = { "wawbus"="wawbus", "wawbus.api"="wawbus/api", "wawbus.util"="waw
 universal = true
 
 [tool.setuptools.dynamic]
-version = { "attr" = "wawbus.__version__"}
+version = { "attr" = "wawbus.__meta__.__version__"}
 dependencies = { "file" = "requirements.txt"}
 optional-dependencies.dev = { "file" = "requirements-dev.txt"}

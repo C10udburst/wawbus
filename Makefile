@@ -1,7 +1,7 @@
 .PHONY: help clean clean-build clean-pyc clean-test lint test test-all docs
 
 docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/wawbus.rst
+	rm -f docs/wawbus*.rst
 	rm -f docs/modules.rst
 	sphinx-apidoc -o docs/ wawbus
 	$(MAKE) -C docs clean
