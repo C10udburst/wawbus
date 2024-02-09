@@ -13,6 +13,14 @@ Subpackages
 Submodules
 ----------
 
+wawbus.constants module
+-----------------------
+
+.. automodule:: wawbus.constants
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wawbus.main module
 ------------------
 

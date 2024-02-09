@@ -41,7 +41,9 @@ def test_bus_positions_retry():
                                    'Time': '2021-01-01 12:00:00'}]},
               'status_code': 200}]
         )
-        entry = api.get_bus_positions()[0]
+        pos = api.get_bus_positions()
+        assert len(pos) == 1
+        entry = pos[0]
         assert isinstance(entry, dict)
         assert entry['Lines'] == '123'
         assert entry['Lat'] == 52.0
