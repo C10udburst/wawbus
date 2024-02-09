@@ -10,7 +10,7 @@ import pandas as pd
 
 from .api import ZtmApi, ZtmApiException
 from .util.dist import speed, stop_dist
-from .constants import _DATASET_URL, _TIMETABLE_URL, _STOPS_URL, BUS_LENGTH
+from .constants import _DATASET_URL, _TIMETABLE_URL, _STOPS_URL, BUS_LENGTH, M_TO_KM
 from .util.time import timeint
 
 
@@ -142,7 +142,7 @@ class WawBus:
 
         # calculate distance to stop
         df['dist'] = df.apply(stop_dist, axis='columns')
-        #df = df[df['dist'] > BUS_LENGTH]  # if bus is closer than BUS_LENGTH to stop it's considered to be at the stop
+        df = df[df['dist'] >= (BUS_LENGTH * M_TO_KM)]  # filter out buses that are too close to the stop
 
         df = df.drop_duplicates()
 
