@@ -1,4 +1,4 @@
-from wawbus.util.velocity_calc import haversine
+from wawbus.util.dist import haversine
 
 
 def test_haversine():

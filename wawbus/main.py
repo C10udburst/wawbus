@@ -5,17 +5,27 @@ from threading import Thread
 from time import sleep
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 
 from .api import ZtmApi, ZtmApiException
-from .util.velocity_calc import speed
-
-_DATASET_URL = "https://github.com/C10udburst/wawbus-data/raw/master/bus-data/{}.gzip"
+from .util.dist import speed, stop_dist
+from .constants import _DATASET_URL, _TIMETABLE_URL, _STOPS_URL, BUS_LENGTH
+from .util.time import timeint
 
 
 class WawBus:
+    """
+    Main class for collecting and processing bus data
+    api: ZtmApi - ZtmApi instance
+    dataset: pd.DataFrame - dataset of bus positions
+    tt: pd.DataFrame - dataset of timetables
+    stops: pd.DataFrame - dataset of stop positions
+    tt_worker_count: int - number of workers when collecting timetables
+    """
     api: Optional[ZtmApi] = None
     tt: Optional[pd.DataFrame] = None
+    stops: Optional[pd.DataFrame] = None
     dataset: pd.DataFrame = pd.DataFrame()
     tt_worker_count: int = 5
 
@@ -26,6 +36,7 @@ class WawBus:
         """
         :param apikey: api.um.warszawa.pl API key
         :param dataset: frozen dataset name
+        :param retry_count: number of retries when making requests to the um API
         """
 
         if not apikey and not dataset:
@@ -94,7 +105,61 @@ class WawBus:
 
         return df
 
+    def calculate_late(self, tolerance: pd.Timedelta = pd.Timedelta('15 minutes')) -> pd.DataFrame:
+        """
+        Calculate how late buses are
+        :param: tolerance - how late can a bus be to be considered to be going to a given stop
+        :return: A new dataframe with added information about stop and distance to it
+        """
+        self._lazyload_stops()
+        self._lazyload_timetable()
+
+        # tt_loc contains timetable with stop locations
+        tt_loc = pd.merge(self.tt, self.stops, left_on=['nr_zespolu', 'nr_przystanku'], right_on=['zespol', 'slupek'])
+        tt_loc = tt_loc.drop(columns=['zespol', 'slupek'])
+
+        df = self.dataset.copy(deep=False)
+
+        # calculate time as int, so it can be merged by closest time
+        df['t'] = df['Time'].apply(timeint)
+        tt_loc['t'] = tt_loc['czas'].apply(timeint)
+
+        # merge by closest time, line and brigade
+        # we do it this way, instead of merging by position
+        # because we neither pandas nor geopandas support merging by closest point with extra condition
+        # and we cant just filter it out later, because it doesn't fit in memory
+        df = pd.merge_asof(
+            df.sort_values('t'),
+            tt_loc.sort_values('t'),
+            left_on='t',
+            right_on='t',
+            direction='backward',
+            left_by=['Lines', 'Brigade'],
+            right_by=['bus', 'brygada'],
+            tolerance=tolerance.seconds
+        )
+        df = df.drop(columns=['t', 'bus', 'brygada'])
+
+        # calculate distance to stop
+        df['dist'] = df.apply(stop_dist, axis='columns')
+        #df = df[df['dist'] > BUS_LENGTH]  # if bus is closer than BUS_LENGTH to stop it's considered to be at the stop
+
+        df = df.drop_duplicates()
+
+        return df
+
+    def _lazyload_timetable(self):
+        if self.tt is not None:
+            return
+        url = _TIMETABLE_URL.format("weekday")  # TODO: make tt for each day of the week
+        self.tt = pd.read_parquet(url)
+
     def _tt_worker(self, unprocessed: Queue, processed: Queue):
+        """
+        Timetable collection worker definition
+        :param unprocessed: Queue with dicts nr_zespolu, nr_przystanku, bus
+        :param processed: Queue with timetable entries
+        """
         while True:
             row = unprocessed.get()
             try:
@@ -139,7 +204,6 @@ class WawBus:
     def collect_timetables(self):
         """
         Collect ALL timetables for all stops and set @code {self.tt}
-        :return:
         """
         print("\033[1;31mThis will take a while\033[0m")
 
@@ -156,3 +220,20 @@ class WawBus:
         df = df.dropna(subset=['czas'])
 
         self.tt = df
+
+    def _lazyload_stops(self):
+        if self.stops is not None:
+            return
+        self.stops = pd.read_parquet(_STOPS_URL)
+
+    def collect_stops(self):
+        """
+        Collect stop positions and set @code {self.stops}
+        """
+
+        self.stops = pd.DataFrame(self.api.get_stop_locations(), columns=[
+            "zespol", "slupek", "szer_geo", "dlug_geo"
+        ])
+
+        self.stops['szer_geo'] = self.stops['szer_geo'].astype(np.float64)
+        self.stops['dlug_geo'] = self.stops['dlug_geo'].astype(np.float64)
