@@ -4,6 +4,14 @@ wawbus
 
 Wawbus is a Python library for analyzing bus data from Warsaw Public Transport
 
+Jupyter notebooks with analysis
+-------------------------------
+
+- `Part 1 <https://colab.research.google.com/github/C10udburst/wawbus/blob/master/part-one.ipynb>`_ (opens Google Colab)
+- `Part 2 <https://colab.research.google.com/github/C10udburst/wawbus/blob/master/part-two.ipynb>`_ (opens Google Colab)
+
+Part 1 covers analyzing bus speed and part 2 covers analyzing bus delays.
+
 Installation
 ------------
 
