@@ -5,3 +5,4 @@ pytest
 flake8
 requests-mock
 sphinx
+sphinx-rtd-theme

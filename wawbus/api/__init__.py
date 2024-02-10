@@ -9,8 +9,12 @@ from .exceptions import ZtmApiException, ZtmHttpException
 def _normalize_kv(data: List[dict]) -> List[dict]:
     """
     Normalize key-value pairs
-    :param data: list in api.um.warszawa.pl format
-    :return: response a list of proper keys
+
+    Args:
+        data: list in api.um.warszawa.pl format
+
+    Returns:
+        response a list of proper keys
     """
     return [{x['key']: x['value'] for x in d['values']} for d in data]
 
@@ -26,10 +30,14 @@ class ZtmApi:
     def _req_once(self, endpoint: str, rid: Optional[str] = None, **qparams):
         """
         Generic request method for ZTM API
-        :param endpoint: which endpoint to use
-        :param rid: resource id
-        :param kwargs: other query parameters
-        :return: response
+
+        Args:
+            endpoint: which endpoint to use
+            rid: resource id
+            qparams: other query parameters
+
+        Returns:
+            response from ZTM API
         """
         qparams['apikey'] = self.api_key
         if rid:
@@ -59,13 +67,17 @@ class ZtmApi:
         else:
             raise ZtmApiException('No result in response')
 
-    def _req(self, endpoint: str, rid: Optional[str] = None, **qparams):
+    def req(self, endpoint: str, rid: Optional[str] = None, **qparams):
         """
         Request method with retries
-        :param endpoint: which endpoint to use
-        :param rid: resource id
-        :param kwargs: other query parameters
-        :return: response
+
+        Args:
+            endpoint: which endpoint to use
+            rid: resource id
+            qparams: other query parameters
+
+        Returns:
+            response from ZTM API
         """
         err = None
         for _ in range(self.retry_count):
@@ -79,9 +91,11 @@ class ZtmApi:
     def get_bus_positions(self) -> List[dict]:
         """
         Get bus positions
-        :return: response a list of dicts with keys: Lat, Lon, Time, Lines, VehicleNumber, Brigade
+
+        Returns:
+            a list of dicts with keys: Lat, Lon, Time, Lines, VehicleNumber, Brigade
         """
-        return self._req(
+        return self.req(
             'busestrams_get',
             'f2e5503e-927d-4ad3-9500-4ab9e55deb59',
             type='1'
@@ -90,10 +104,11 @@ class ZtmApi:
     def get_routes(self) -> List[dict]:
         """
         Get bus routes
-        :return: response a list of dicts with keys: odleglosc, ulica_id, nr_zespolu, typ, nr_przystanku, bus,
-        direction, stop
+
+        Returns:
+            a list of dicts with keys: odleglosc, ulica_id, nr_zespolu, typ, nr_przystanku, bus, direction, stop
         """
-        for bus, data in self._req(
+        for bus, data in self.req(
                 'public_transport_routes'
         ).items():
             for direction, stops in data.items():
@@ -106,10 +121,11 @@ class ZtmApi:
     def get_stop_locations(self) -> List[dict]:
         """
         Get bus stop locations
-        :return: response a list of dicts with keys: zespol, slupek, nazwa_zespolu, id_ulicy, szer_geo, dlug_geo,
-        kierunek, obowiazuje_od
+
+        Returns:
+            a list of dicts with keys: id, name, lat, lon
         """
-        return _normalize_kv(self._req(
+        return _normalize_kv(self.req(
             'dbstore_get',
             id='ab75c33d-3a26-4342-b36a-6e5fef0a3ac3'
         ))
@@ -117,12 +133,16 @@ class ZtmApi:
     def get_timetable(self, stop_id: str, line: str, stop_nr: str) -> List[dict]:
         """
         Get bus timetable
-        :param stop_id: bus stop id
-        :param line: bus line number
-        :param stop_nr: bus stop number
-        :return: response a list of dicts with keys: symbol_2, symbol_1, brygada, kierunek, trasa, czas
+
+        Args:
+            stop_id (str): bus stop id (from get_stop_locations)
+            line (str): bus line number
+            stop_nr (str): bus stop number
+
+        Returns:
+            a list of dicts with keys: symbol_2, symbol_1, brygada, kierunek, trasa, czas
         """
-        return _normalize_kv(self._req(
+        return _normalize_kv(self.req(
             'dbtimetable_get',
             id='e923fa0e-d96c-43f9-ae6e-60518c9f3238',
             busstopId=stop_id,

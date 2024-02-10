@@ -1,5 +1,5 @@
 =====
-wawbus
+README
 =====
 
 Wawbus is a Python library for analyzing bus data from Warsaw Public Transport
@@ -55,8 +55,8 @@ Usage in command line
     options:
       -h, --help            show this help message and exit
       --apikey APIKEY       api.um.warszawa.pl API key. If set to 'env', will use WAWBUS_APIKEY.environment variable
-      --type {positions,timetable}
-                            What to collect: positions or timetable
+      --type {positions,timetable,stops}
+                            What to collect
       --count COUNT         number of collections
       --retry RETRY         number of retries
       --sleep SLEEP         sleep between collections

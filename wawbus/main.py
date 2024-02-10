@@ -17,11 +17,13 @@ from .util.time import timeint
 class WawBus:
     """
     Main class for collecting and processing bus data
-    api: ZtmApi - ZtmApi instance
-    dataset: pd.DataFrame - dataset of bus positions
-    tt: pd.DataFrame - dataset of timetables
-    stops: pd.DataFrame - dataset of stop positions
-    tt_worker_count: int - number of workers when collecting timetables
+
+    Attributes:
+        api (ZtmApi): ZtmApi instance
+        tt (pd.DataFrame): Timetable dataframe
+        stops (pd.DataFrame): Stop locations dataframe
+        dataset (pd.DataFrame): Dataset of bus positions dataframe
+        tt_worker_count (int): Number of timetable collection workers when collecting timetables
     """
     api: Optional[ZtmApi] = None
     tt: Optional[pd.DataFrame] = None
@@ -34,9 +36,13 @@ class WawBus:
                  dataset: Optional[str] = None,
                  retry_count: int = 3):
         """
-        :param apikey: api.um.warszawa.pl API key
-        :param dataset: frozen dataset name
-        :param retry_count: number of retries when making requests to the um API
+        Args:
+            apikey (str): API key for ZtmApi (optional)
+            dataset (str): frozen dataset's name (optional)
+            retry_count (int): number of retries when collecting data
+
+        Raises:
+            ValueError: when both apikey and dataset are not provided
         """
 
         if not apikey and not dataset:
@@ -53,12 +59,24 @@ class WawBus:
                 self.dataset = pd.read_parquet(_DATASET_URL.format(dataset))
 
     def collect_positions(self, count: int, sleep_between: int = 10):
+        """
+        Collect bus positions
+
+        Args:
+            count (int): - number of collections
+            sleep_between (int): - time between collections
+
+        Updates:
+            self.dataset (pd.DataFrame): Dataset of bus positions dataframe
+
+        Raises:
+            ZtmApiException: when API returns an error more than self.retry_count times
+            ValueError: when API key is not provided
+            InvalidColumnName: when API returns an invalid column name
+        """
         if not self.api:
             raise ValueError("API key is required.")
-        """
-        Collect bus positions and append to dataset
-        :return: None
-        """
+
         dfs = [self.dataset]
         for i in range(count):
             print(f"Collecting data {i + 1}/{count}")
@@ -90,7 +108,9 @@ class WawBus:
     def calculate_speed(self) -> pd.DataFrame:
         """
         Calculate speed from dataset
-        :return: A new dataframe with added column 'Speed'
+
+        Returns:
+            A copy of self.dataset dataframe with new "Speed" column added.
         """
         df = self.dataset.copy(deep=False)
         df['NextLon'] = df.groupby('VehicleNumber')['Lon'].shift(-1)
@@ -108,8 +128,13 @@ class WawBus:
     def calculate_late(self, tolerance: pd.Timedelta = pd.Timedelta('15 minutes')) -> pd.DataFrame:
         """
         Calculate how late buses are
-        :param: tolerance - how late can a bus be to be considered to be going to a given stop
-        :return: A new dataframe with added information about stop and distance to it
+
+        Args:
+            tolerance (pd.Timedelta): time tolerance for merging timetable and dataset
+
+        Returns:
+            A union of dataset and timetable with new "dist" column added specifying distance to the stop the
+            bus was supposed to be at.
         """
         self._lazyload_stops()
         self._lazyload_timetable()
@@ -157,8 +182,10 @@ class WawBus:
     def _tt_worker(self, unprocessed: Queue, processed: Queue):
         """
         Timetable collection worker definition
-        :param unprocessed: Queue with dicts nr_zespolu, nr_przystanku, bus
-        :param processed: Queue with timetable entries
+
+        Args:
+            unprocessed (Queue): Queue with dicts nr_zespolu, nr_przystanku, bus
+            processed (Queue): Queue with timetable entries
         """
         while True:
             row = unprocessed.get()
@@ -203,8 +230,17 @@ class WawBus:
 
     def collect_timetables(self):
         """
-        Collect ALL timetables for all stops and set @code {self.tt}
+        Collect ALL timetables for all stops
+
+        Updates:
+            self.tt (pd.DataFrame): Timetable dataframe
+
+        Raises:
+            ValueError: when API key is not provided
         """
+        if not self.api:
+            raise ValueError("API key is required.")
+
         print("\033[1;31mThis will take a while\033[0m")
 
         df = pd.DataFrame(self._yield_timetables(), columns=[
@@ -228,8 +264,18 @@ class WawBus:
 
     def collect_stops(self):
         """
-        Collect stop positions and set @code {self.stops}
+        Collect stop positions
+
+        Updates:
+            self.stops (pd.DataFrame): Stop locations dataframe
+
+        Raises:
+            ValueError: when API key is not provided
+            ZtmApiException: when API returns an error more than self.retry_count times
+            InvalidColumnName: when API returns an invalid column name
         """
+        if not self.api:
+            raise ValueError("API key is required.")
 
         self.stops = pd.DataFrame(self.api.get_stop_locations(), columns=[
             "zespol", "slupek", "szer_geo", "dlug_geo"
