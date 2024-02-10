@@ -12,6 +12,10 @@ Jupyter notebooks with analysis
 
 Part 1 covers analyzing bus speed and part 2 covers analyzing bus delays.
 
+.. warning::
+    When running notebooks via Google Colab, data collection is not possible.
+    This is because api.um.warszawa.pl blocks requests from data center IPs.
+
 Installation
 ------------
 
